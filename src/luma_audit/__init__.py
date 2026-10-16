@@ -22,7 +22,7 @@ from .funil import FunilUnico, FILA_DIR
 from .sentinela import Sentinela
 from .vigia import Vigia
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 __all__ = [
     "LUMA", "Veredito", "PromptAudit",
     "Sessao", "AuditorTrajetoria", "VereditoTrajetoria",

@@ -1,6 +1,5 @@
-# luma_audit.py — Camada Constitucional da LUMA (auditor deterministico)
-# I1: funil unico · I3: fail-closed · I4: limites fisicos + plausibilidade
-# I5: quem loga e o zbit
+# luma_audit.py - Camada Constitucional da LUMA
+# I4: limites fisicos - I6: proveniencia de contexto
 from enum import Enum
 
 
@@ -10,33 +9,49 @@ class Veredito(Enum):
 
 
 class LUMA:
-    # I4: limites fisicos declarados por acao
+    """Auditor determinista de acoes de IA.
+
+    I6: proveniencia - SENSOR (range completo) vs DECLARADO (teto 50%).
+    Sem origem -> assume SENSOR (backward-compat).
+    """
+
     LIMITES = {
         "ajustar_gamma":  (0.5, 1.6),
         "ajustar_brilho": (0.0, 100.0),
     }
 
-    # Limites plausiveis do sensor BH1750
     LUX_MIN = 0
     LUX_MAX = 100000
 
+    ORIGENS = ("SENSOR", "DECLARADO")
+    TETO_DECLARADO = 0.25
+
     def auditar(self, proposta: dict, contexto: dict) -> Veredito:
-        # I1: so acoes conhecidas passam
         acao = proposta.get("acao")
         if acao not in self.LIMITES:
             return Veredito.REJEITADA
 
-        # tipo do valor
         valor = proposta.get("valor")
         if not isinstance(valor, (int, float)) or isinstance(valor, bool):
             return Veredito.REJEITADA
 
-        # I4-a: valor dentro dos limites fisicos da acao
         lo, hi = self.LIMITES[acao]
-        if not (lo <= valor <= hi):
+
+        # I6: origem (default SENSOR para compat)
+        origem = contexto.get("origem", "SENSOR")
+        if origem not in self.ORIGENS:
             return Veredito.REJEITADA
 
-        # I4-b: contexto do sensor tem que ser fisicamente plausivel
+        if origem == "DECLARADO":
+            span = hi - lo
+            teto_lo = lo + span * self.TETO_DECLARADO
+            teto_hi = hi - span * self.TETO_DECLARADO
+            if not (teto_lo <= valor <= teto_hi):
+                return Veredito.REJEITADA
+        else:
+            if not (lo <= valor <= hi):
+                return Veredito.REJEITADA
+
         lux = contexto.get("lux")
         if not isinstance(lux, (int, float)) or isinstance(lux, bool):
             return Veredito.REJEITADA
