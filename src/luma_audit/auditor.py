@@ -1,5 +1,5 @@
 # luma_audit.py - Camada Constitucional da LUMA
-# I4: limites fisicos - I6: proveniencia de contexto
+# I4: limites fisicos - I6: proveniencia - I7: limite/dominio customizavel
 from enum import Enum
 
 
@@ -11,20 +11,36 @@ class Veredito(Enum):
 class LUMA:
     """Auditor determinista de acoes de IA.
 
-    I6: proveniencia - SENSOR (range completo) vs DECLARADO (teto 50%).
-    Sem origem -> assume SENSOR (backward-compat).
+    Default: controlo de luz (BH1750).
+    Custom: passa limites e sensor no construtor.
+
+    Exemplo generico:
+        LUMA(limites={"transferir_mb": (0, 500)},
+             sensor="disk_free",
+             sensor_range=(0, 100000))
     """
 
-    LIMITES = {
+    # Default: controlo de luz
+    LIMITES_DEFAULT = {
         "ajustar_gamma":  (0.5, 1.6),
         "ajustar_brilho": (0.0, 100.0),
     }
-
-    LUX_MIN = 0
-    LUX_MAX = 100000
+    LUX_MIN_DEFAULT = 0
+    LUX_MAX_DEFAULT = 100000
 
     ORIGENS = ("SENSOR", "DECLARADO")
     TETO_DECLARADO = 0.25
+
+    def __init__(self, limites=None, sensor="lux",
+                 sensor_range=None, teto_declarado=None):
+        self.LIMITES = dict(limites) if limites else dict(self.LIMITES_DEFAULT)
+        self.SENSOR = sensor
+        if sensor_range:
+            self.SENSOR_MIN, self.SENSOR_MAX = sensor_range
+        else:
+            self.SENSOR_MIN = self.LUX_MIN_DEFAULT
+            self.SENSOR_MAX = self.LUX_MAX_DEFAULT
+        self.TETO_DECLARADO = teto_declarado if teto_declarado is not None else 0.25
 
     def auditar(self, proposta: dict, contexto: dict) -> Veredito:
         acao = proposta.get("acao")
@@ -37,7 +53,7 @@ class LUMA:
 
         lo, hi = self.LIMITES[acao]
 
-        # I6: origem (default SENSOR para compat)
+        # I6: origem (default SENSOR)
         origem = contexto.get("origem", "SENSOR")
         if origem not in self.ORIGENS:
             return Veredito.REJEITADA
@@ -52,10 +68,13 @@ class LUMA:
             if not (lo <= valor <= hi):
                 return Veredito.REJEITADA
 
-        lux = contexto.get("lux")
-        if not isinstance(lux, (int, float)) or isinstance(lux, bool):
+        # I4-b: leitura do sensor
+        leitura = contexto.get(self.SENSOR)
+        if leitura is None:
+            leitura = contexto.get("lux")  # backward-compat
+        if not isinstance(leitura, (int, float)) or isinstance(leitura, bool):
             return Veredito.REJEITADA
-        if not (self.LUX_MIN <= lux <= self.LUX_MAX):
+        if not (self.SENSOR_MIN <= leitura <= self.SENSOR_MAX):
             return Veredito.REJEITADA
 
         hora = contexto.get("hora", "")

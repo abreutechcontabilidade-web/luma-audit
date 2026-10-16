@@ -20,7 +20,7 @@ def proposta_impossivel():
 
 
 def contexto_valido():
-    return {"lux": 5000, "hora": "14h"}
+    return {"lux": 5000, "hora": "14h", "origem": "SENSOR"}
 
 
 def contexto_impossivel():
