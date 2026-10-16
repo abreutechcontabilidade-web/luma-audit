@@ -37,8 +37,8 @@ def teste_custom_sensor_fora_range():
 
 def teste_custom_teto_declarado():
     a = LUMA(limites={"acao_y": (0, 100)}, teto_declarado=0.10)
-    # 85 fora do teto (10,90) -> REJEITADA
-    v = a.auditar({"acao": "acao_y", "valor": 85},
+    # 95 fora do teto (10,90) -> REJEITADA
+    v = a.auditar({"acao": "acao_y", "valor": 95},
                   {"lux": 5000, "hora": "14h", "origem": "DECLARADO"})
     assert v == Veredito.REJEITADA
     # 50 dentro -> APROVADA
