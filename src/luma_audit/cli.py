@@ -15,6 +15,7 @@ import sys
 
 from . import __version__
 from .auditor import LUMA, Veredito
+from .prompt_audit import PromptAudit
 from .sentinela import Sentinela
 from .vigia import Vigia
 
@@ -60,6 +61,19 @@ def cmd_vigia_checar(args):
     return 0 if not r["alertas"] else 1
 
 
+def cmd_prompt(args):
+    a = PromptAudit()
+    veredito, motivo, tag = a.auditar(args.texto)
+    resultado = {
+        "texto": args.texto[:80],
+        "veredito": veredito,
+        "tag": tag,
+        "motivo": motivo,
+        "hash": a.hash_de(args.texto),
+    }
+    print(json.dumps(resultado, indent=2, ensure_ascii=False))
+    return 0 if veredito == "aprovada" else 1
+
 def cmd_version(args):
     print(f"luma-audit {__version__}")
     return 0
@@ -84,7 +98,11 @@ def main():
     p_audit.add_argument("--hora", required=True,
                          help="Hora local no formato 'xh' (ex: 14h).")
     p_audit.set_defaults(func=cmd_audit)
-
+    # prompt
+    p_prompt = sub.add_parser("prompt", help="Audita texto/prompt.")
+    p_prompt.add_argument("--texto", required=True,
+                          help="Texto a auditar.")
+    p_prompt.set_defaults(func=cmd_prompt)
     # sentinela
     p_sent = sub.add_parser("sentinela", help="Contador de dias com foco.")
     sub_sent = p_sent.add_subparsers(dest="sub", required=True)
