@@ -1,0 +1,9 @@
+.venv/
+_patch_backups/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+fila_rt*/
