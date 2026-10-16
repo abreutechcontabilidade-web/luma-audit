@@ -1,0 +1,23 @@
+name: Prova Corpus
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar luma-audit
+        run: pip install luma-audit
+      - name: Correr validacao
+        run: python scripts/validar_corpus.py --n 500
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-corpus
+          path: corpus/RELATORIO.md
