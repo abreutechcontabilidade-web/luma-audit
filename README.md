@@ -1,43 +1,80 @@
 # luma-audit
 
-**Governança determinística no ponto de execução.**
+> **Deterministic governance for AI actions. No LLM in the decision path.**
 
-A LUMA audita **ações** de IA — não o texto que ela produz.
-A camada de decisão não usa LLM. É determinística.
-O propositor (Gemini, Claude, Llama, nenhum) é substituível.
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)](#)
 
 ---
 
-## O problema
+## What it does
 
-Agentes de IA já estão agindo em sistemas reais: ajustando
-configurações, chamando APIs, movendo dados, tomando decisões.
-A vanguarda de 2026 documentou dezenas de casos de **escape
-de sandbox, colusão entre agentes, e execução de ações fora do
-envelope autorizado**. Guardrails baseados em texto (prompt,
-Constitutional AI) competem contra os pesos do modelo — e
-perdem. A única camada que não pode ser contornada é a que
-roda **fora do modelo**, no ponto de execução.
+`luma-audit` is a deterministic execution-control layer that **approves or rejects AI actions before they happen**.
 
-## A solução
+- **Deterministic** - same input, same output. Always.
+- **Outside the model** - a layer the LLM cannot bypass.
+- **Auditable** - every decision is hash-chained.
 
-A `luma-audit` é essa camada. Uma CLI — e futuramente uma API —
-que recebe uma **proposta de ação** e o **contexto do sensor**,
-e retorna um veredito determinístico: `aprovada` ou `rejeitada`.
+It does **not** filter text, detect toxicity, or replace authentication. It audits **actions**.
 
-Nenhuma decisão passa pela IA. Nenhum resultado depende de
-probabilidade. O auditor aplica limites físicos declarados
-e é auditável por hash chain.
+---
 
-## Instalação
-
-### Requisitos
-- Python 3.10 ou superior
-- Windows, Linux ou macOS
-
-### Windows / Linux / macOS — instalação local (dev)
+## Install
 
 ```bash
-git clone https://github.com/seu-usuario/luma-audit.git
-cd luma-audit
-pip install -e .
+pip install luma-audit
+```
+
+---
+
+## 30-second example
+
+```python
+from luma_audit import LUMA
+
+auditor = LUMA()
+auditor.avaliar('ler_ficheiro')      # -> aprovada
+auditor.avaliar('apagar_ficheiro')   # -> rejeitada
+auditor.avaliar('acao_desconhecida') # -> rejeitada (unknown = high risk)
+```
+
+---
+
+## What it does NOT do
+
+- Does not filter text (that is a prompt guardrail - different problem)
+- Does not detect toxicity
+- Does not replace authentication
+- Does not use any LLM in the decision path
+
+---
+
+## Architecture
+
+```
+src/luma_audit/
+    auditor.py       # LUMA class + Veredito enum
+    trajetoria.py    # Sessao, AuditorTrajetoria, Decisao, hash chain
+    canal.py         # CanalUnico, MensagemFunil
+    funil.py         # FunilUnico, FILA_DIR
+    cli.py           # luma CLI entrypoint
+```
+
+## Tests
+
+22 red-team tests: hash chain integrity + tampering, quarantine escalation, flood detection, atomic writes, corrupted proposal rejection, executor revalidation.
+
+---
+
+## Philosophy
+
+Guardrails based on prompts compete against the model's weights - and lose. The only layer that cannot be bypassed is the one running **outside the model**, at the point of execution.
+
+`luma-audit` is that layer.
+
+---
+
+## License
+
+MIT. Community Edition. Enterprise Edition available commercially.
