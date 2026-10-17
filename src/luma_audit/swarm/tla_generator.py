@@ -45,6 +45,7 @@ class TlaGenerator:
             "    /\\ aprovado' = (valor >= 0)",
             "",
             "Next == \\E acao \\in {\"ajustar_brilho\"}, valor \\in 0..100 : Commit(acao, valor)",
+            "Spec == Init /\\ [][Next]_<<estado, risco, aprovado>>",
             "============================================================================="
         ])
 
