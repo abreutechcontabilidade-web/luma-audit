@@ -9,7 +9,7 @@ class AIFederation:
     def __init__(self):
         self.providers = {
             "ollama": {"url": "http://localhost:11434/api/generate", "model": "llama3", "format": "ollama"},
-            "groq": {"url": "https://api.groq.com/openai/v1/chat/completions", "model": "llama3-70b-8192", "key_env": "GROQ_API_KEY", "format": "openai"},
+            "groq": {"url": "https://api.groq.com/openai/v1/chat/completions", "model": "llama-3.3-70b-versatile", "key_env": "GROQ_API_KEY", "format": "openai"},
             "openai": {"url": "https://api.openai.com/v1/chat/completions", "model": "gpt-4o-mini", "key_env": "OPENAI_API_KEY", "format": "openai"},
             "anthropic": {"url": "https://api.anthropic.com/v1/messages", "model": "claude-3-5-sonnet-20241022", "key_env": "ANTHROPIC_API_KEY", "format": "anthropic"},
             "deepseek": {"url": "https://api.deepseek.com/v1/chat/completions", "model": "deepseek-chat", "key_env": "DEEPSEEK_API_KEY", "format": "openai"}
