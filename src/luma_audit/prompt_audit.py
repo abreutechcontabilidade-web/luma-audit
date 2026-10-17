@@ -23,7 +23,7 @@ def _limpar_texto(t: str) -> str:
         except Exception:
             pass
     # 5. Leetspeak (apenas se misturado com letras para evitar FPR em numeros)
-    leet_map = str.maketrans('431057@$', 'aeiostsas')
+    leet_map = str.maketrans('431057@$', 'aeiostas')
     t_leet = t.translate(leet_map)
     
     # Retorna todas as variacoes possiveis para o match
