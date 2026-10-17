@@ -16,3 +16,6 @@ luma = "luma_audit.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+python_files = ["teste_*.py", "test_*.py"]
