@@ -75,6 +75,15 @@ def cmd_swarm_demo(args):
     return 0 if res.ok else 1
 
 
+def cmd_tla_generate(args):
+    from .swarm.tla_generator import TlaGenerator
+    from .swarm.skill_pool import SkillPool
+    pool = SkillPool.default()
+    paths = TlaGenerator.gerar(pool, args.out_dir)
+    print(f"Gerado: {paths['tla']}")
+    print(f"Gerado: {paths['cfg']}")
+    return 0
+
 def cmd_version(args):
     print(f"luma-audit {__version__}")
     return 0
