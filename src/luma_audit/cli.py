@@ -69,7 +69,12 @@ def cmd_swarm_demo(args):
     r = S.ler("bh1750", 5000)
     ctx = {"sensor_nome": r.nome, "sensor_valor": r.valor,
            "sensor_ts": r.ts, "sensor_sig": r.assinatura}
-    res = K.commit(args.role, {"skill": args.skill, "valor": args.valor}, ctx)
+    if args.quantum:
+        from .swarm.qubit_adapter import QubitAdapter
+        QA = QubitAdapter(K)
+        res = QA.commit_qubit(args.role, {"skill": args.skill, "valor": args.valor}, ctx, peso_bias=args.bias)
+    else:
+        res = K.commit(args.role, {"skill": args.skill, "valor": args.valor}, ctx)
     print(json.dumps({"ok": res.ok, "motivo": res.motivo,
                       "hash": res.evento_hash}, indent=2, ensure_ascii=False))
     return 0 if res.ok else 1
@@ -149,6 +154,8 @@ def main():
     p_sw.add_argument("--role", default="luz")
     p_sw.add_argument("--skill", default="ajustar_brilho")
     p_sw.add_argument("--valor", type=float, default=80.0)
+    p_sw.add_argument("--quantum", action="store_true", help="Usa QubitAdapter (L7)")
+    p_sw.add_argument("--bias", type=float, default=0.0, help="Peso de bias para o gate (-1 a 1)")
     p_sw.set_defaults(func=cmd_swarm_demo)
 
     # trajetoria
