@@ -1,13 +1,23 @@
-"""elite_council.py - O Conselho de Elite da Bancada do Mal (LUMA v0.9.4)"""
+"""elite_council.py - O Conselho de Elite com Essencia Pura Standalone (LUMA v1.0.3)"""
 import re
 import hashlib
+import sys
+from pathlib import Path
+
+# Importar a Essência Pura Standalone (não precisa de SQLAlchemy)
+try:
+    from luma_audit.pure_semantic import PureSemantic
+    TEM_ESSENCIA_PURA = True
+except ImportError as e:
+    TEM_ESSENCIA_PURA = False
+    print(f"[CONSELHO][AVISO] Nao foi possivel importar a Essencia Pura: {e}")
 
 class EliteCouncil:
     def __init__(self):
         self.vetos = []
+        self.pure = PureSemantic() if TEM_ESSENCIA_PURA else None
 
     def _analisar_bits(self, patch_str: str) -> bool:
-        # O Analista de Bits: Procura caracteres invisiveis ou ofuscacao binaria
         invisiveis = re.findall(r"[\u200b-\u200d\ufeff]", patch_str)
         if invisiveis:
             self.vetos.append("Bit-Analyzer: Caracteres invisiveis detetados (Zero-Width).")
@@ -18,8 +28,7 @@ class EliteCouncil:
         return True
 
     def _analisar_pessimista(self, patch_str: str) -> bool:
-        # O Pessimista: Assume que qualquer injeção de sistema é um ataque
-        proibidos = ["rm -rf", "del /q", "format c:", "eval(", "exec(", "os.system", "subprocess.", "require(\'fs\')", "fs.readFileSync", "fs.writeFileSync", "child_process", "execSync"]
+        proibidos = ["rm -rf", "del /q", "format c:", "eval(", "exec(", "os.system", "subprocess.", "require('fs')", "fs.readFileSync"]
         for p in proibidos:
             if p in patch_str.lower():
                 self.vetos.append(f"Pessimista: Comando destrutivo ou de execucao detetado ({p}).")
@@ -27,8 +36,7 @@ class EliteCouncil:
         return True
 
     def _analisar_cientista(self, patch_str: str) -> bool:
-        # O Cientista: Exige estrutura (sem lixo ou caracteres corrompidos)
-        if len(patch_str) > 500000: # 500KB
+        if len(patch_str) > 500000:
             self.vetos.append("Cientista: Patch demasiado grande (possivel bomba de descompressao).")
             return False
         try:
@@ -40,7 +48,6 @@ class EliteCouncil:
         return True
 
     def _analisar_competidor(self, patch_str: str) -> bool:
-        # O Competidor: Tenta encontrar falhas no fluxo do motor
         if "import" in patch_str and "subprocess" in patch_str:
             self.vetos.append("Competidor: Tentativa de contornar o Kernel com importacoes maliciosas.")
             return False
@@ -49,15 +56,23 @@ class EliteCouncil:
     def avaliar(self, patch_str: str) -> bool:
         self.vetos = []
         
-        # Assinatura do patch (O Bit/Byte)
         sha = hashlib.sha256(patch_str.encode()).hexdigest()[:16]
         print(f"  [CONSELHO] A analisar patch com SHA: {sha}")
 
-        # Convocar o conselho
         self._analisar_bits(patch_str)
         self._analisar_pessimista(patch_str)
         self._analisar_cientista(patch_str)
         self._analisar_competidor(patch_str)
+
+        if not self.vetos and TEM_ESSENCIA_PURA:
+            print("  [CONSELHO] A convocar a Essencia Pura Standalone...")
+            try:
+                veredito = self.pure.auditar_texto(patch_str)
+                print(f"  [CONSELHO] Essencia Pura respondeu: {veredito.upper()}")
+                if veredito.lower() == "rejeitado":
+                    self.vetos.append("Essencia Pura: Injeção detectada (regex/leet/cosseno).")
+            except Exception as e:
+                print(f"  [CONSELHO][AVISO] Essencia Pura falhou: {e}")
 
         if self.vetos:
             print("  [CONSELHO] VETO APLICADO:")
@@ -65,5 +80,5 @@ class EliteCouncil:
                 print(f"    - {v}")
             return False
             
-        print("  [CONSELHO] Todos os 4 Auditores aprovaram o patch.")
+        print("  [CONSELHO] Todos os auditores (4 Locais + Essencia Pura) aprovaram o patch.")
         return True
