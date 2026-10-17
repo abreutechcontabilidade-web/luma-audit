@@ -109,6 +109,54 @@ def cmd_trajetoria_simular(args):
     print(f"\nCadeia integra: {s.verificar_cadeia()}")
     return 0
 
+
+def cmd_evolution(args):
+    import os
+    from .evolution.zbit import MemoriaZ
+    from .evolution.aria_skills import EquipeAria, Skill
+    from .evolution.adapter import EvolutionaryAdapter
+    from .swarm.skill_pool import SkillPool
+    from .swarm.sensor_binding import SensorBinding
+    from .swarm.commit_kernel import CommitKernel
+    
+    # Configuracao do Ledger
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url:
+        from .swarm.neon_ledger import NeonLedger
+        db_url = db_url.replace("&channel_binding=require", "")
+        L = NeonLedger(db_url=db_url)
+        print("[!] Modo Nuvem: Ligado ao Neon DB")
+    else:
+        from .swarm.ledger import Ledger
+        L = Ledger()
+        print("[!] Modo Local: Ledger em memoria")
+
+    # Dummy Skill para teste
+    class AjustarBrilhoSkill(Skill):
+        def propor(self, contexto):
+            return {"skill": "ajustar_brilho", "valor": 85.0}
+
+    mem = MemoriaZ()
+    equipe = EquipeAria(mem)
+    sk = AjustarBrilhoSkill("ajustar_brilho")
+    equipe.registrar(sk, reputacao0=0.5)
+
+    S = SensorBinding(b"0123456789abcdef0123456789abcdef")
+    K = CommitKernel(SkillPool.default(), S, L)
+    adapter = EvolutionaryAdapter(equipe, K, L)
+
+    r = S.ler("bh1750", 5000)
+    ctx = {"sensor_nome": r.nome, "sensor_valor": r.valor,
+           "sensor_ts": r.ts, "sensor_sig": r.assinatura}
+    
+    print(f"Skill '{sk.nome}' vai propor...")
+    res = adapter.commit_evolutivo(sk.nome, ctx, role="luz")
+    
+    print(f"\nResultado: {'APROVADA' if res.ok else 'REJEITADA'} ({res.motivo})")
+    print(f"Reputacao da Skill (Z-bit): {equipe.reputacao(sk):.2f}")
+    print(f"Hash Ledger: {res.evento_hash}")
+    return 0
+
 def cmd_tla_generate(args):
     from .swarm.tla_generator import TlaGenerator
     from .swarm.skill_pool import SkillPool
@@ -176,6 +224,10 @@ def main():
     p_tr_sim.add_argument("--n", type=int, default=15, help="Numero de acoes")
     p_tr_sim.add_argument("--acao", default="ajustar_brilho")
     p_tr_sim.set_defaults(func=cmd_trajetoria_simular)
+
+    # evolution
+    p_evo = sub.add_parser("evolution", help="Motor evolutivo (ARIA + Zbits)")
+    p_evo.set_defaults(func=cmd_evolution)
 
     # tla
     p_tla = sub.add_parser("tla", help="Verificacao formal TLA+")

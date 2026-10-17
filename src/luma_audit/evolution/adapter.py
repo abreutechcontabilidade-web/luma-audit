@@ -13,7 +13,7 @@ class EvolutionaryAdapter:
         self.kernel = kernel
         self.ledger = ledger
 
-    def commit_evolutivo(self, skill_nome: str, contexto: dict) -> CommitResult:
+    def commit_evolutivo(self, skill_nome: str, contexto: dict, role: str = "luz") -> CommitResult:
         skill = self.equipe.skills.get(skill_nome)
         if not skill:
             return CommitResult(False, f"skill_desconhecida:{skill_nome}", "")
@@ -23,7 +23,7 @@ class EvolutionaryAdapter:
         
         # 2. CommitKernel DECIDE (deterministico)
         # O kernel verifica policy (SkillPool), sensores e head_assinada
-        res = self.kernel.commit(role=skill_nome, proposta=proposta, contexto=contexto)
+        res = self.kernel.commit(role=role, proposta=proposta, contexto=contexto)
 
         # 3. EquipeAria APRENDE (evolutivo)
         # Reforca ou derruba o Z-bit da skill
