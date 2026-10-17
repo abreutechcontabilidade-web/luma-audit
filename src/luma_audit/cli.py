@@ -133,7 +133,7 @@ def main():
     p_sw.add_argument("--valor", type=float, default=80.0)
     p_sw.set_defaults(func=cmd_swarm_demo)
 
-    pver = sub.add_parser("version")
+    # tla\n    p_tla = sub.add_parser("tla", help="Verificacao formal TLA+")\n    sub_tla = p_tla.add_subparsers(dest="sub", required=True)\n    p_tla_gen = sub_tla.add_parser("generate")\n    p_tla_gen.add_argument("--out-dir", default="tla_out")\n    p_tla_gen.set_defaults(func=cmd_tla_generate)\n\n    pver = sub.add_parser("version")
     pver.set_defaults(func=cmd_version)
 
     args = p.parse_args()
