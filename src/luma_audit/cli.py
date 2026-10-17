@@ -112,6 +112,18 @@ def main():
     vc.add_argument("--pasta", default=".")
     vc.set_defaults(func=cmd_vigia_checar)
 
+    # replay
+    p_rep = sub.add_parser("replay", help="Verifica integridade do ledger.")
+    p_rep.add_argument("--ledger", required=True)
+    p_rep.set_defaults(func=cmd_replay)
+
+    # swarm (demo)
+    p_sw = sub.add_parser("swarm", help="Commit kernel (demo).")
+    p_sw.add_argument("--role", default="luz")
+    p_sw.add_argument("--skill", default="ajustar_brilho")
+    p_sw.add_argument("--valor", type=float, default=80.0)
+    p_sw.set_defaults(func=cmd_swarm_demo)
+
     pver = sub.add_parser("version")
     pver.set_defaults(func=cmd_version)
 
