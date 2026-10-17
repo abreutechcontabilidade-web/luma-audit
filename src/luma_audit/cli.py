@@ -157,6 +157,34 @@ def cmd_evolution(args):
     print(f"Hash Ledger: {res.evento_hash}")
     return 0
 
+
+def cmd_sentinela_nuvem(args):
+    import os
+    from .swarm.neon_ledger import NeonLedger
+    from .swarm.ledger import Ledger
+    
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        print("[!] ERRO: DATABASE_URL nao definida. Sentinela apenas funciona na nuvem.")
+        return 1
+        
+    db_url = db_url.replace("&channel_binding=require", "")
+    print("[!] Sentinela Branco: A verificar integridade da hash chain no Neon DB...")
+    
+    try:
+        L = NeonLedger(db_url=db_url)
+        integro = L.verificar()
+        
+        if integro:
+            print(f"[OK] LEDGER SEGURO: {len(L.eventos)} eventos verificados. Head: {L.head}")
+            return 0
+        else:
+            print("[ALERTA CRITICO] TAMPERING DETETADO! A hash chain foi corrompida.")
+            return 1
+    except Exception as e:
+        print(f"[ERRO FATAL] Falha ao ligar ao Sentinela: {e}")
+        return 1
+
 def cmd_tla_generate(args):
     from .swarm.tla_generator import TlaGenerator
     from .swarm.skill_pool import SkillPool
