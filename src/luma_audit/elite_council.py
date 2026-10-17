@@ -19,7 +19,7 @@ class EliteCouncil:
 
     def _analisar_pessimista(self, patch_str: str) -> bool:
         # O Pessimista: Assume que qualquer injeção de sistema é um ataque
-        proibidos = ["rm -rf", "del /q", "format c:", "eval(", "exec(", "os.system", "subprocess."]
+        proibidos = ["rm -rf", "del /q", "format c:", "eval(", "exec(", "os.system", "subprocess.", "require(\'fs\')", "fs.readFileSync", "fs.writeFileSync", "child_process", "execSync"]
         for p in proibidos:
             if p in patch_str.lower():
                 self.vetos.append(f"Pessimista: Comando destrutivo ou de execucao detetado ({p}).")
