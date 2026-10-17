@@ -8,6 +8,9 @@ from .auditor import LUMA, Veredito
 from .prompt_audit import PromptAudit
 from .sentinela import Sentinela
 from .vigia import Vigia
+from .replay import verificar_ledger
+from .swarm import (Ledger, SkillPool, SensorBinding,
+                          CommitKernel)
 
 
 def cmd_audit(args):
@@ -49,6 +52,27 @@ def cmd_vigia_checar(args):
     r = Vigia(pasta=args.pasta).checar()
     print(json.dumps(r, indent=2, ensure_ascii=False))
     return 0 if not r["alertas"] else 1
+
+
+def cmd_replay(args):
+    info = verificar_ledger(args.ledger)
+    print(json.dumps(info, indent=2, ensure_ascii=False))
+    return 0 if info["integro"] else 1
+
+
+def cmd_swarm_demo(args):
+    import tempfile
+    from pathlib import Path as _P
+    L = Ledger(_P(tempfile.mkdtemp()) / "swarm.json")
+    S = SensorBinding(b"cli-demo")
+    K = CommitKernel(SkillPool.default(), S, L)
+    r = S.ler("bh1750", 5000)
+    ctx = {"sensor_nome": r.nome, "sensor_valor": r.valor,
+           "sensor_ts": r.ts, "sensor_sig": r.assinatura}
+    res = K.commit(args.role, {"skill": args.skill, "valor": args.valor}, ctx)
+    print(json.dumps({"ok": res.ok, "motivo": res.motivo,
+                      "hash": res.evento_hash}, indent=2, ensure_ascii=False))
+    return 0 if res.ok else 1
 
 
 def cmd_version(args):
