@@ -185,6 +185,36 @@ def cmd_sentinela_nuvem(args):
         print(f"[ERRO FATAL] Falha ao ligar ao Sentinela: {e}")
         return 1
 
+def cmd_shadow(args):
+    import os
+    from .prompt_audit import PromptAudit
+    from .swarm.neon_ledger import NeonLedger
+    
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url:
+        db_url = db_url.replace("&channel_binding=require", "")
+        L = NeonLedger(db_url=db_url)
+    else:
+        from .swarm.ledger import Ledger
+        L = Ledger()
+
+    a = PromptAudit()
+    veredito, motivo, tag = a.auditar(args.texto)
+    
+    # Regista no ledger o que TERIA acontecido
+    tipo_evento = "shadow_rejeicao" if veredito == "rejeitada" else "shadow_aprovacao"
+    L.append(tipo_evento, {"texto": args.texto[:50], "motivo": motivo, "tag": tag})
+    
+    print(f"[SHADOW] Analise concluida. Auditoria real seria: {veredito.upper()}")
+    if veredito == "rejeitada":
+        print(f"[!] ALERTA: Jailbreak detetado no modo sombra. Motivo: {motivo}")
+    else:
+        print(f"[OK] Texto limpo.")
+        
+    print(f"[*] Evento '{tipo_evento}' gravado na nuvem com sucesso.")
+    return 0
+
+
 def cmd_tla_generate(args):
     from .swarm.tla_generator import TlaGenerator
     from .swarm.skill_pool import SkillPool
@@ -258,6 +288,11 @@ def main():
     # evolution
     p_evo = sub.add_parser("evolution", help="Motor evolutivo (ARIA + Zbits)")
     p_evo.set_defaults(func=cmd_evolution)
+    # shadow
+    p_sh = sub.add_parser("shadow", help="Modo sombra (audita mas nao bloqueia)")
+    p_sh.add_argument("--texto", required=True)
+    p_sh.set_defaults(func=cmd_shadow)
+
 
     # tla
     p_tla = sub.add_parser("tla", help="Verificacao formal TLA+")
