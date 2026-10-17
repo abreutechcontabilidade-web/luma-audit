@@ -1,3 +1,4 @@
+import hashlib
 import tempfile
 from pathlib import Path
 from luma_audit.swarm import (Ledger, SkillPool, SensorBinding,
@@ -7,7 +8,7 @@ from luma_audit.swarm import (Ledger, SkillPool, SensorBinding,
 def _k():
     p = Path(tempfile.mkdtemp()) / "led.json"
     L = Ledger(p)
-    S = SensorBinding(b"chave-teste")
+    S = SensorBinding(hashlib.sha256(b"seed-a").digest())
     K = CommitKernel(SkillPool.default(), S, L)
     return K, S, L
 

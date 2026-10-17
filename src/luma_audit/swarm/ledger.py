@@ -1,8 +1,7 @@
 """Ledger - event-sourcing com hash chain (L6).
 
-Cada evento: seq, tipo, payload, hash_anterior, hash.
-Replay por terceiros: recomputa hashes e verifica cadeia.
-Stdlib puro.
+A4: aceita head_assinada externa. Se fornecida, verificar()
+recusa cadeias truncadas (hash final tem de bater com head).
 """
 from __future__ import annotations
 
@@ -11,7 +10,6 @@ import json
 import time
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
-from typing import Any
 
 GENESIS = "LUMA-SWARM-GENESIS"
 
@@ -36,12 +34,17 @@ class Evento:
 class Ledger:
     """Event-sourcing append-only com hash chain verificavel."""
 
-    def __init__(self, caminho: Path | str | None = None):
+    def __init__(self, caminho=None, head_assinada: str = None):
         self.caminho = Path(caminho) if caminho else None
+        self.head_assinada = head_assinada
         self.eventos: list[Evento] = []
         self.head = hashlib.sha256(GENESIS.encode()).hexdigest()[:32]
         if self.caminho and self.caminho.exists():
             self._carregar()
+        if head_assinada and self.eventos:
+            if self.eventos[-1].hash != head_assinada:
+                raise ValueError(
+                    f"head externo nao bate: {self.eventos[-1].hash} != {head_assinada}")
 
     def _carregar(self) -> None:
         dados = json.loads(self.caminho.read_text(encoding="utf-8"))
@@ -56,7 +59,7 @@ class Ledger:
             json.dumps([asdict(e) for e in self.eventos], indent=2),
             encoding="utf-8")
 
-    def append(self, tipo: str, payload: dict[str, Any]) -> Evento:
+    def append(self, tipo: str, payload: dict) -> Evento:
         seq = len(self.eventos) + 1
         h = _hash(seq, tipo, payload, self.head)
         ev = Evento(seq=seq, tipo=tipo, payload=payload,
@@ -67,11 +70,15 @@ class Ledger:
         return ev
 
     def verificar(self) -> bool:
-        """True se a cadeia e integra (recomputa todos os hashes)."""
         anterior = hashlib.sha256(GENESIS.encode()).hexdigest()[:32]
         for ev in self.eventos:
             h = _hash(ev.seq, ev.tipo, ev.payload, anterior)
             if ev.hash != h or ev.hash_anterior != anterior:
                 return False
             anterior = ev.hash
+        if self.head_assinada:
+            if not self.eventos:
+                return False
+            if self.eventos[-1].hash != self.head_assinada:
+                return False
         return True
