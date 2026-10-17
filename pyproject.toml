@@ -1,4 +1,4 @@
-[build-system]
+﻿[build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
@@ -36,3 +36,4 @@ where = ["src"]
 testpaths = ["."]
 python_files = "teste_*.py"
 python_functions = ["rt*", "test_*", "teste_*"]
+
