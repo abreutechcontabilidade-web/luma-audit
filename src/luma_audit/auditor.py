@@ -24,6 +24,7 @@ class LUMA:
     LIMITES_DEFAULT = {
         "ajustar_gamma":  (0.5, 1.6),
         "ajustar_brilho": (0.0, 100.0),
+        "aplicar_patch":   (0, 1000000),
     }
     LUX_MIN_DEFAULT = 0
     LUX_MAX_DEFAULT = 100000
