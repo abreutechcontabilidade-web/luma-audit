@@ -1,4 +1,4 @@
-﻿__test__ = False  # Ignorar no pytest (script manual de redteam)
+__test__ = False  # Ignorar no pytest (script manual de redteam)
 """
 teste_redteam.py â€” 21 provas adversariais sobre a v0.3.0.
 """
@@ -20,7 +20,7 @@ T = []
 
 
 
-def _helper_teste(fn):
+def teste(fn):
     T.append(fn)
     return fn
 
@@ -293,4 +293,3 @@ if __name__ == "__main__":
             print(f"[ERRO ] {t.__name__}: {type(e).__name__}: {e}")
             falha += 1
     print(f"\nRED-TEAM v0.3.0: {ok} passaram | {falha} falharam | {len(T)} provas")
-
