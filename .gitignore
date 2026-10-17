@@ -10,3 +10,4 @@ fila_rt*/
 
 # corpus bruto (ficheiros grandes)
 corpus/raw/
+_bancada/motor/watch.log
