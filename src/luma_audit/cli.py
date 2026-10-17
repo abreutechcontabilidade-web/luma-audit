@@ -75,6 +75,24 @@ def cmd_swarm_demo(args):
     return 0 if res.ok else 1
 
 
+
+def cmd_trajetoria_simular(args):
+    from .trajetoria import Sessao, AuditorTrajetoria
+    a = AuditorTrajetoria()
+    s = Sessao("cli-sim")
+    contexto = {"lux": 500, "hora": "12h", "origem": "SENSOR"}
+    print(f"Simulando {args.n} acoes de '{args.acao}'...")
+    for i in range(args.n):
+        proposta = {"acao": args.acao, "valor": 50.0}
+        v, s = a.auditar(proposta, contexto, s)
+        status = "OK" if v == "aprovada" else "BLOQUEADA"
+        print(f"  Acao {i+1:02d}: {status:9s} | {v}")
+        if v != "aprovada":
+            print(f"\n[!] Defesa ativada na acao {i+1}. Motivo: {v}")
+            break
+    print(f"\nCadeia integra: {s.verificar_cadeia()}")
+    return 0
+
 def cmd_tla_generate(args):
     from .swarm.tla_generator import TlaGenerator
     from .swarm.skill_pool import SkillPool
@@ -132,6 +150,14 @@ def main():
     p_sw.add_argument("--skill", default="ajustar_brilho")
     p_sw.add_argument("--valor", type=float, default=80.0)
     p_sw.set_defaults(func=cmd_swarm_demo)
+
+    # trajetoria
+    p_tr = sub.add_parser("trajetoria", help="Simula risco acumulado (L2)")
+    sub_tr = p_tr.add_subparsers(dest="sub", required=True)
+    p_tr_sim = sub_tr.add_parser("simular")
+    p_tr_sim.add_argument("--n", type=int, default=15, help="Numero de acoes")
+    p_tr_sim.add_argument("--acao", default="ajustar_brilho")
+    p_tr_sim.set_defaults(func=cmd_trajetoria_simular)
 
     # tla
     p_tla = sub.add_parser("tla", help="Verificacao formal TLA+")
