@@ -64,7 +64,7 @@ def cmd_swarm_demo(args):
     import tempfile
     from pathlib import Path as _P
     L = Ledger(_P(tempfile.mkdtemp()) / "swarm.json")
-    S = SensorBinding(b"cli-demo")
+    S = SensorBinding(b"0123456789abcdef0123456789abcdef")
     K = CommitKernel(SkillPool.default(), S, L)
     r = S.ler("bh1750", 5000)
     ctx = {"sensor_nome": r.nome, "sensor_valor": r.valor,
