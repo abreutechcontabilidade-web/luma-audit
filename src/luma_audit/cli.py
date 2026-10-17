@@ -62,8 +62,19 @@ def cmd_replay(args):
 
 def cmd_swarm_demo(args):
     import tempfile
+    import os
     from pathlib import Path as _P
-    L = Ledger(_P(tempfile.mkdtemp()) / "swarm.json")
+    
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url:
+        from .swarm.neon_ledger import NeonLedger
+        # Remove channel_binding se existir para evitar conflitos no Windows
+        db_url = db_url.replace("&channel_binding=require", "")
+        L = NeonLedger(db_url=db_url)
+        print("[!] Modo Nuvem: Ligado ao Neon DB")
+    else:
+        L = Ledger(_P(tempfile.mkdtemp()) / "swarm.json")
+        print("[!] Modo Local: Ledger temporario")
     S = SensorBinding(b"0123456789abcdef0123456789abcdef")
     K = CommitKernel(SkillPool.default(), S, L)
     r = S.ler("bh1750", 5000)
