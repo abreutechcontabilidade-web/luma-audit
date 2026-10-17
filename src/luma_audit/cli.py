@@ -224,6 +224,8 @@ def main():
     sf = ss.add_parser("foco")
     sf.add_argument("--motivo", default="interacao")
     sf.set_defaults(func=cmd_sentinela_foco)
+    sn = ss.add_parser("nuvem", help="Verifica integridade do NeonLedger")
+    sn.set_defaults(func=cmd_sentinela_nuvem)
 
     pv = sub.add_parser("vigia")
     sv = pv.add_subparsers(dest="sub", required=True)
