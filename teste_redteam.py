@@ -1,5 +1,5 @@
-"""
-teste_redteam.py — 21 provas adversariais sobre a v0.3.0.
+﻿"""
+teste_redteam.py â€” 21 provas adversariais sobre a v0.3.0.
 """
 
 
@@ -19,7 +19,7 @@ T = []
 
 
 
-def teste(fn):
+def _helper_teste(fn):
     T.append(fn)
     return fn
 
@@ -30,7 +30,7 @@ class LumaFake:
         return "rejeitada" if ("segredo" in t or "burlar" in t) else "aprovada"
 
 
-# ═══════════ GAP 3 · TRAJETÓRIA ═══════════
+# â•â•â•â•â•â•â•â•â•â•â• GAP 3 Â· TRAJETÃ“RIA â•â•â•â•â•â•â•â•â•â•â•
 @teste
 def rt01_sessao_nova_aprova_acao_valida():
     s = Sessao("rt01")
@@ -112,7 +112,7 @@ def rt08_tampering_quebra_cadeia():
     assert not s.verificar_cadeia()
 
 
-# ═══════════ GAP 1 · CANAL ═══════════
+# â•â•â•â•â•â•â•â•â•â•â• GAP 1 Â· CANAL â•â•â•â•â•â•â•â•â•â•â•
 @teste
 def rt09_payload_hostil_retorna_none():
     canal = CanalUnico(LumaFake())
@@ -123,7 +123,7 @@ def rt09_payload_hostil_retorna_none():
 @teste
 def rt10_payload_limpo_retorna_msg():
     canal = CanalUnico(LumaFake())
-    msg = canal.enviar("aria", "sentinela", "relatório de lux das 20h")
+    msg = canal.enviar("aria", "sentinela", "relatÃ³rio de lux das 20h")
     assert msg is not None and msg.valido()
 
 
@@ -169,7 +169,7 @@ def rt15_canal_multi_destinatario_logado():
     assert len(canal.enviadas) == 2
 
 
-# ═══════════ GAP 2 · FUNIL ═══════════
+# â•â•â•â•â•â•â•â•â•â•â• GAP 2 Â· FUNIL â•â•â•â•â•â•â•â•â•â•â•
 @teste
 def rt16_timeout_sem_executor_negacao():
     shutil.rmtree("fila_rt16", ignore_errors=True)
@@ -229,7 +229,7 @@ def rt19_proposta_corrompida_descartada():
     shutil.rmtree("fila_rt19", ignore_errors=True)
     f = FunilUnico(base="fila_rt19")
     with open(os.path.join(f.p, "lixo.json"), "w") as fh:
-        fh.write("{isso não é json")
+        fh.write("{isso nÃ£o Ã© json")
     f.servir_uma(lambda p: None, auditor=None)
     assert not os.path.exists(os.path.join(f.p, "lixo.json"))
 
@@ -244,8 +244,8 @@ def rt20_escrita_atomica_sem_tmp_fantasma():
 
 @teste
 def rt22_quarentena_por_intencao_repetida():
-    """100 pedidos impossíveis = 100 rejeições, MAS a 3ª escalou a sessão.
-    Depois da quarentena, até pedido VÁLIDO é rejeitado (REJEITADA_TETO)."""
+    """100 pedidos impossÃ­veis = 100 rejeiÃ§Ãµes, MAS a 3Âª escalou a sessÃ£o.
+    Depois da quarentena, atÃ© pedido VÃLIDO Ã© rejeitado (REJEITADA_TETO)."""
     s = Sessao("rt22")
     a = AuditorTrajetoria()
     for _ in range(2):
@@ -254,7 +254,7 @@ def rt22_quarentena_por_intencao_repetida():
     v, s = a.auditar(proposta_impossivel(), contexto_impossivel(), s)
     assert v == VereditoTrajetoria.REJEITADA_FISICA
     assert s.contador_rejeicoes == 3 and s.escalada
-    # o atacante tenta agora um pedido LEGÍTIMO — não cola
+    # o atacante tenta agora um pedido LEGÃTIMO â€” nÃ£o cola
     v, s = a.auditar(proposta_valida(), contexto_valido(), s)
     assert v == VereditoTrajetoria.REJEITADA_TETO, "quarentena deve segurar"
 
