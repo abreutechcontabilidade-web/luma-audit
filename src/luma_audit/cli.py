@@ -203,7 +203,9 @@ def cmd_shadow(args):
     
     # Regista no ledger o que TERIA acontecido
     tipo_evento = "shadow_rejeicao" if veredito == "rejeitada" else "shadow_aprovacao"
-    L.append(tipo_evento, {"texto": args.texto[:50], "motivo": motivo, "tag": tag})
+    import hashlib
+    _tsha = hashlib.sha256(args.texto.encode("utf-8")).hexdigest()[:16]
+    L.append(tipo_evento, {"texto_sha256": _tsha, "texto_len": len(args.texto), "motivo": motivo, "tag": tag})
     
     print(f"[SHADOW] Analise concluida. Auditoria real seria: {veredito.upper()}")
     if veredito == "rejeitada":
