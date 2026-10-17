@@ -6,16 +6,19 @@ import os
 import sys
 from pathlib import Path
 
-# Tentar importar o multi_fallback do motor
+# Adicionar o motor e a subpasta lib ao path
 MOTOR_SRC = r"C:\Users\user\Desktop\cpf_arboreo_repo\_bancada\motor"
-if MOTOR_SRC not in sys.path:
-    sys.path.insert(0, MOTOR_SRC)
+MOTOR_LIB = os.path.join(MOTOR_SRC, "lib")
+for p in [MOTOR_SRC, MOTOR_LIB]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
 try:
     from multi_fallback import multi_fallback
     TEM_MULTI_FALLBACK = True
-except ImportError:
+except ImportError as e:
     TEM_MULTI_FALLBACK = False
+    print(f"[FEDERACAO][AVISO] Nao foi possivel importar multi_fallback: {e}")
 
 class AIFederation:
     def __init__(self):
@@ -44,10 +47,19 @@ PATCH:
             print("  [FEDERACAO] Usando multi_fallback.py (Autoflutuacao do Motor)...")
             try:
                 prompt = self._prompt_auditoria(patch_data)
-                # O multi_fallback retorna (sucesso, resposta_texto, provedor)
-                sucesso, resposta, provedor = multi_fallback("groq", prompt)
+                # A assinatura do multi_fallback pode ser (prompt) ou (provedor, prompt)
+                # Vamos tentar chamar apenas com o prompt primeiro
+                resultado = multi_fallback(prompt)
+                
+                # Se retornar um tuplo (sucesso, resposta, provedor)
+                if isinstance(resultado, tuple) and len(resultado) >= 2:
+                    sucesso, resposta = resultado[0], resultado[1]
+                    provedor = resultado[2] if len(resultado) > 2 else "desconhecido"
+                else:
+                    # Se retornar apenas a string da resposta
+                    sucesso, resposta, provedor = True, str(resultado), "multi_fallback"
+                
                 if sucesso:
-                    # Tentar fazer parse do JSON da resposta
                     try:
                         ans = json.loads(resposta)
                         aprovado = ans.get("veredito") == "aprovado"
@@ -55,11 +67,11 @@ PATCH:
                         print(f"  [FEDERACAO] {provedor.upper()} respondeu: {'APROVADO' if aprovado else 'REJEITADO'} ({motivo})")
                         return aprovado, motivo
                     except json.JSONDecodeError:
-                        print(f"  [FEDERACAO][AVISO] Resposta invalida do {provedor}: {resposta[:50]}...")
+                        print(f"  [FEDERACAO][AVISO] Resposta invalida do {provedor}: {resposta[:80]}...")
             except Exception as e:
                 print(f"  [FEDERACAO][AVISO] multi_fallback falhou: {e}")
 
-        # 2. Fallback: Tentar a federacao classica (se o multi_fallback nao existir)
+        # 2. Fallback: Tentar a federacao classica
         print("  [FEDERACAO] Autoflutuacao indisponivel. A tentar fallback classico...")
         print("  [FEDERACAO] Nenhuma IA externa disponivel. A confiar no Kernel Local.")
         return True, "Aprovado pelo Kernel Local (Fallback)"
